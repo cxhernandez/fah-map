@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import sys
 import json
 import numpy as np
@@ -50,7 +51,7 @@ info = []
 for location, count in zip(ucounts.keys(), ucounts.get_values()):
     if location:
         if location[0] == 'unknown':
-            location[0] == get_city_from_coord(location[1:])
+            location = (get_city_from_coord(location[1:]),) + location[1:]
         info.append({'city_name': location[0],
                      'lat': location[1],
                      'long': location[-1],
