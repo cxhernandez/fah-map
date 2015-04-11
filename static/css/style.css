@@ -9,16 +9,25 @@
 }
 
 .fah-map label {
-    text-align: center;
-    font-style: italic;
+  text-align: center;
+  font-style: italic;
 }
 
 .fah-map div {
-  width: 70%;
+  width: 75%;
+  padding-left:-2em;
+  height: auto;
   margin: 0 auto;
   border: 1px solid #bbb;
   vertical-align: middle;
   margin-bottom: 1em;
+}
+
+svg {
+  overflow: hidden;
+  width:100%;
+  height: auto;
+  padding: -5em;
 }
 
 .form {
@@ -29,8 +38,4 @@
 
 #map {
 
-}
-
-svg {
-  width:100%;
 }

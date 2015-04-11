@@ -4,7 +4,6 @@ var request = require('request');
 var https = require('https');
 var engine = require('ejs-locals')
 var fs = require('fs');
-var serveStatic = require('serve-static');
 
 var port = process.env.PORT || 3000;
 
@@ -26,11 +25,11 @@ app.get('/', function (req, res, next) {
     update('past30.json', res);
 });
 
-app.use('/static',express.static(__dirname+"/static/"));
+app.use('/static',express.static(__dirname + "/static/"));
 
 app.post('/', function(req, res, next){
-    console.log(req.body.days)
-    update(req.body.days, res);
+    console.log(req.body.option)
+    update(req.body.option, res);
 });
 
 app.listen(port, function () {

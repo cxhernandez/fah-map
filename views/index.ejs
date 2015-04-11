@@ -3,12 +3,13 @@
   <h1 class="form-signin-heading" align="center">Folding@home Map</h1>
   <br/>
   <div class="fah-map">
-      <div id="map"></div>
+      <div id="map">
+      </div>
   </div>
   <div class="form">
   <form class="form-signin" action="/" method="post">
     <label>Data from the past:</label>
-    <select name="days" onchange="this.form.submit()">>
+    <select name="option" onchange="this.form.submit()">>
     <% for(var i=0; i<options.length; i++) { %>
        <option value="<%= options[i] %>"><%= options[i] %></option>
     <% } %>
@@ -17,7 +18,6 @@
 </div>
 </div>
 <script type="text/javascript">
-
 $(function() {
     // initialize tooltips
     $.fn.qtip.defaults.style.classes = 'ui-tooltip-bootstrap';
@@ -35,7 +35,7 @@ $(function() {
                     clustering: clustering,
                     clusteringOpts: {
                         tolerance: 0.01,
-                        maxRatio: 0.9
+                        maxRatio: 0.75
                     },
                     aggregate: function(cities) {
                         var nc = { nb_visits: 0, city_names: [] };
@@ -62,7 +62,7 @@ $(function() {
                     sortBy: 'radius desc',
                     style: 'fill:#800; stroke: #fff; fill-opacity: 0.5;',
                 });
-            }, { padding: -75 });
+            }, { padding: -60 });
         }
         map('#map', 'noverlap');
     });
