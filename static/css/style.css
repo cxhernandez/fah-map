@@ -1,0 +1,36 @@
+.mylayer {
+    fill: #EDC9AF;
+    stroke: gray;
+}
+
+.ocean {
+    fill: lightblue;
+    opacity: 0.2;
+}
+
+.fah-map label {
+    text-align: center;
+    font-style: italic;
+}
+
+.fah-map div {
+  width: 70%;
+  margin: 0 auto;
+  border: 1px solid #bbb;
+  vertical-align: middle;
+  margin-bottom: 1em;
+}
+
+.form {
+  margin: 0 auto;
+  width: 50%;
+  text-align: center;
+}
+
+#map {
+
+}
+
+svg {
+  width:100%;
+}
