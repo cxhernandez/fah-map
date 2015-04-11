@@ -14,10 +14,20 @@ app.set('view engine', 'ejs');
 
 function update(file, response) {
     fs.readdir('./static/json/', function(err, files) {
+      
+          var options = [file.match(/\d+/g)[0]];
+
+          for (var i in files) {
+            if (files[i] != file ) {
+              options.push(files[i].match(/\d+/g)[0]);
+            }
+          }
+
           response.render('index', {
                           json: file,
-                          options: files
+                          options: options
           });
+
         });
 }
 
@@ -28,8 +38,7 @@ app.get('/', function (req, res, next) {
 app.use('/static',express.static(__dirname + "/static/"));
 
 app.post('/', function(req, res, next){
-    console.log(req.body.option)
-    update(req.body.option, res);
+    update('past' + req.body.option + '.json', res);
 });
 
 app.listen(port, function () {
