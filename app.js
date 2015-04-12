@@ -13,8 +13,8 @@ app.engine('ejs', engine);
 app.set('view engine', 'ejs');
 
 function update(file, response) {
-    fs.readdir('./static/json/', function(err, files) {
-      
+    fs.readdir('./static/png/', function(err, files) {
+
           var options = [file.match(/\d+/g)[0]];
 
           for (var i in files) {
@@ -24,7 +24,7 @@ function update(file, response) {
           }
 
           response.render('index', {
-                          json: file,
+                          png: file,
                           options: options
           });
 
@@ -32,13 +32,13 @@ function update(file, response) {
 }
 
 app.get('/', function (req, res, next) {
-    update('past30.json', res);
+    update('past30.png', res);
 });
 
 app.use('/static',express.static(__dirname + "/static/"));
 
 app.post('/', function(req, res, next){
-    update('past' + req.body.option + '.json', res);
+    update('past' + req.body.option + '.png', res);
 });
 
 app.listen(port, function () {

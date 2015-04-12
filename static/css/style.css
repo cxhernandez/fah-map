@@ -1,3 +1,8 @@
+body {
+  background-color: #f6f6f6 !important;
+
+}
+
 .mylayer {
     fill: #EDC9AF;
     stroke: gray;
@@ -13,14 +18,20 @@
   font-style: italic;
 }
 
-.fah-map div {
-  width: 75%;
-  padding-left:-2em;
+.fah-map {
+  width: 100%;
   height: auto;
   margin: 0 auto;
-  border: 1px solid #bbb;
+  border: 5px solid #bbb;
   vertical-align: middle;
   margin-bottom: 1em;
+  background-color: black !important;
+}
+
+img {
+  width: 100%;
+  align: center;
+  padding: 0;
 }
 
 svg {
@@ -34,8 +45,4 @@ svg {
   margin: 0 auto;
   width: 50%;
   text-align: center;
-}
-
-#map {
-
 }
