@@ -44,8 +44,8 @@ pts = []
 for coord, count in zip(ucounts.keys(), ucounts.get_values()):
     if coord[0] and coord[1]:
         for _ in xrange(count):
-            pts.append((coord[0],#+np.random.normal(0,.1),
-                        coord[1]))#+np.random.normal(0,.1)))
+            pts.append((coord[0] + np.random.normal(0,.05),
+                        coord[1] + np.random.normal(0,.05)))
 
 img = get_heatmap(pts, size = world.size, scheme="custom")
 
