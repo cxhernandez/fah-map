@@ -1,6 +1,0 @@
-include setup.py
-include *.dll
-include examples/*.py
-include build.bat
-include README
-include LICENSE
