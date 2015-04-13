@@ -6,15 +6,15 @@ import math
 import logging
 import argparse
 import numpy as np
-import pandas as pd
 from PIL import Image
 import geoip2.database
 from PIL import ImageColor
+from itertools import imap
 from colorsys import hsv_to_rgb
 from collections import defaultdict
 
 
-__version__ = '0.0.1'
+__version__ = '0.0.2'
 
 
 class LinearKernel:
@@ -621,7 +621,7 @@ class AppendingMatrix(Matrix):
         return total
 
 
-def make_config(pts, bg):
+def make_config(pts, hsva_min, hsva_max, bg):
     config = Configuration()
     config.background_image = bg
     (config.width, config.height) = config.background_image.size
@@ -634,8 +634,8 @@ def make_config(pts, bg):
     config.gradient = None
     config.decay = 0.3
     config.colormap = ColorMap(
-        hsva_min=ColorMap.str_to_hsva(ColorMap.DEFAULT_HSVA_MIN_STR),
-        hsva_max=ColorMap.str_to_hsva(ColorMap.DEFAULT_HSVA_MAX_STR))
+        hsva_min=ColorMap.str_to_hsva(hsva_min),
+        hsva_max=ColorMap.str_to_hsva(hsva_max))
     config.gpx = None
     config.extent_in = Extent(coords=(LatLon(-80., -180.), LatLon(80., 180.)))
     config.projection.auto_set_scale(config.extent_in, padding,
@@ -649,24 +649,13 @@ def make_config(pts, bg):
     return config
 
 
-def get_city(entry, lang):
-    if hasattr(entry, 'names') and lang in entry.names:
-        return entry.names[lang]
-    return 'unknown'
-
-
 def get_coord(addr):
     response = reader.city(addr)
     lat = response.location.latitude
     lng = response.location.longitude
-    return (lat, lng)
-
-
-def get_points(coords):
-    for coord, count in zip(coords.keys(), coords.get_values()):
-        if coord[0] and coord[1]:
-                for _ in xrange(count):
-                    yield Point(LatLon(coord[0], coord[1]), 1)
+    if lat and lng:
+        return Point(LatLon(lat, lng), 1)
+    return Point(LatLon(0.0, 0.0), 1)
 
 
 def process_shapes(config, hook=None):
@@ -698,6 +687,13 @@ def parse_cmdln():
                         dest='bg', help='Image of the world.')
     parser.add_argument('-d', '--days', dest='days',
                         help='Number of days to access.', default=30, type=int)
+    parser.add_argument('-m', '--min', dest='hsva_min',
+                        help='Number of days to access.',
+                        default=ColorMap.DEFAULT_HSVA_MIN_STR, type=str)
+    parser.add_argument('-M', '--max', dest='hsva_max',
+                        help='Number of days to access.',
+                        default=ColorMap.DEFAULT_HSVA_MAX_STR, type=str)
+
     args = parser.parse_args()
     return args
 
@@ -708,13 +704,9 @@ if __name__ == "__main__":
     world = Image.open(options.bg)
     ip = np.loadtxt(options.ip, dtype=str)
 
-    coords = map(get_coord, ip)
+    pts = imap(get_coord, ip)
 
-    series = pd.Series(coords)
-    ucounts = series.value_counts()
-
-    pts = get_points(ucounts)
-    config = make_config(pts, world)
+    config = make_config(pts, options.hsva_min, options.hsva_max, world)
 
     img = get_heatmap(config)
 
