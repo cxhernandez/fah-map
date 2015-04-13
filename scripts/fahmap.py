@@ -476,8 +476,8 @@ class Extent():
 
 
 class ColorMap:
-    DEFAULT_HSVA_MIN_STR = '000ffff00'
-    DEFAULT_HSVA_MAX_STR = '02affffff'
+    DEFAULT_HSVA_MIN_STR = '02acfff00'
+    DEFAULT_HSVA_MAX_STR = '02a00ffff'
 
     @staticmethod
     def _str_to_float(string, base=16, maxval=256):
