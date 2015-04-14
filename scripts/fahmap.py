@@ -436,8 +436,8 @@ class ImageMaker():
 
 
 class ColorMap:
-    DEFAULT_HSVA_MIN_STR = '02acfff00'
-    DEFAULT_HSVA_MAX_STR = '02a00ffff'
+    DEFAULT_HSVA_MIN_STR = '000ffff00'  # '02acfff00'
+    DEFAULT_HSVA_MAX_STR = '02affffff'  # '02a00ffff'
 
     @staticmethod
     def _str_to_float(string, base=16, maxval=256):
@@ -620,10 +620,10 @@ def parse_cmdln():
     parser.add_argument('-d', '--days', dest='days',
                         help='Number of days to access.', default=30, type=int)
     parser.add_argument('-m', '--min', dest='hsva_min',
-                        help='Number of days to access.',
+                        help='Color of the minimum of the gradient.',
                         default=ColorMap.DEFAULT_HSVA_MIN_STR, type=str)
     parser.add_argument('-M', '--max', dest='hsva_max',
-                        help='Number of days to access.',
+                        help='Color of the maximum of the gradient..',
                         default=ColorMap.DEFAULT_HSVA_MAX_STR, type=str)
 
     args = parser.parse_args()
@@ -634,9 +634,9 @@ if __name__ == "__main__":
 
     reader = geoip2.database.Reader(options.db)
     world = Image.open(options.bg)
-    ip = np.loadtxt(options.ip, dtype=str)
+    addr = np.loadtxt(options.ip, dtype=str)
 
-    pts = imap(get_coord, ip)
+    pts = imap(get_coord, addr)
 
     config = Configuration(pts=pts, hsva_min=options.hsva_min,
                            hsva_max=options.hsva_max, bg=world)
