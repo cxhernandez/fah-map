@@ -66,6 +66,95 @@ class Coordinate(object):
         return self.__class__(self.first - o.first, self.second - o.second)
 
 
+class LatLon(Coordinate):
+    def __init__(self, lat, lon):
+        self.lat = lat
+        self.lon = lon
+
+    def get_lat(self):
+        return self.y
+
+    def set_lat(self, lat):
+        self.y = lat
+
+    def get_lon(self):
+        return self.x
+
+    def set_lon(self, lon):
+        self.x = lon
+
+    lat = property(get_lat, set_lat)
+    lon = property(get_lon, set_lon)
+
+    first = property(get_lat)
+    second = property(get_lon)
+
+
+class Extent():
+    def __init__(self, coords=None, shapes=None):
+        if coords:
+            coords = tuple(coords)  # if it's a generator, slurp them all
+            self.min = coords[0].__class__(min(c.first for c in coords),
+                                           min(c.second for c in coords))
+            self.max = coords[0].__class__(max(c.first for c in coords),
+                                           max(c.second for c in coords))
+        elif shapes:
+            self.from_shapes(shapes)
+        else:
+            raise ValueError('Extent must be initialized')
+
+    def __str__(self):
+        return '%s,%s,%s,%s' % (self.min.y, self.min.x, self.max.y, self.max.x)
+
+    def update(self, other):
+        '''grow this bounding box so that it includes the other'''
+        self.min.x = min(self.min.x, other.min.x)
+        self.min.y = min(self.min.y, other.min.y)
+        self.max.x = max(self.max.x, other.max.x)
+        self.max.y = max(self.max.y, other.max.y)
+
+    def from_bounding_box(self, other):
+        self.min = other.min.copy()
+        self.max = other.max.copy()
+
+    def from_shapes(self, shapes):
+        shapes = iter(shapes)
+        self.from_bounding_box(next(shapes).extent)
+        for s in shapes:
+            self.update(s.extent)
+
+    def corners(self):
+        return (self.min, self.max)
+
+    def size(self):
+        return self.max.__class__(self.max.x - self.min.x,
+                                  self.max.y - self.min.y)
+
+    def grow(self, pad):
+        self.min.x -= pad
+        self.min.y -= pad
+        self.max.x += pad
+        self.max.y += pad
+
+    def resize(self, width=None, height=None):
+        if width:
+            self.max.x += float(width - self.size().x) / 2
+            self.min.x = self.max.x - width
+        if height:
+            self.max.y += float(height - self.size().y) / 2
+            self.min.y = self.max.y - height
+
+    def is_inside(self, coord):
+        return (coord.x >= self.min.x and coord.x <= self.max.x and
+                coord.y >= self.min.y and coord.y <= self.max.y)
+
+    def map(self, func):
+        '''Returns a new Extent whose corners are a function of the
+        corners of this one.  The expected use is to project a Extent
+        onto a map.  For example: bbox_xy = bbox_ll.map(projector.project)'''
+        return Extent(coords=(func(self.min), func(self.max)))
+
+
 class Projection(object):
     # For guessing scale, we pretend the earth is a sphere with this
     # radius in meters, as in Web Mercator (the projection all the
@@ -200,88 +289,48 @@ class Configuration(object):
     Every parameter is explained in the glossary dictionary, and only
     documented parameters are allowed.  Parameters default to None.
     '''
-
-    glossary = {
-        # Many of these are exactly the same as the command line option.
-        # In those cases, the documentation is left blank.
-        # Many have default values based on the command line defaults.
-        'output': '',
-        'width': '',
-        'height': '',
-        'margin': '',
-        'shapes': 'unprojected iterable of shapes (Points and LineSegments)',
-        'projection': 'Projection instance',
-        'colormap': 'ColorMap instance',
-        'decay': '',
-        'kernel': 'kernel instance',
-        'extent_in': 'extent in original space',
-        'extent_out': 'extent in projected space',
-
-        'background': '',
-        'background_image': '',
-        'background_brightness': '',
-
-        # OpenStreetMap background tiles
-        'osm': 'True/False; see command line options',
-        'osm_base': '',
-        'zoom': '',
-
-        # These are for making an animation, ignored otherwise.
-        'ffmpegopts': '',
-        'keepframes': '',
-        'frequency': '',
-        'straggler_threshold': '',
-
-        # We always instantiate an OptionParser in order to set up
-        # default values.  You can use this OptionParser in your own
-        # script, perhaps adding your own options.
-        'optparser': 'OptionParser instance for command line processing',
-    }
-
     _kernels = {'linear': LinearKernel,
                 'gaussian': GaussianKernel, }
     _projections = {'equirectangular': EquirectangularProjection,
                     'mercator': MercatorProjection, }
 
-    def __init__(self, use_defaults=True):
-        for k in self.glossary.keys():
-            setattr(self, k, None)
+    glossary = {
+        'width': 0,
+        'height': 0,
+        'margin': 0,
+        'radius': 2,
+        'shapes': None,
+        'projection': None,
+        'colormap': None,
+        'decay': 0.3,
+        'kernel': None,
+        'extent_in': Extent(coords=(LatLon(-80., -180.), LatLon(80., 180.))),
+        'extent_out': None,
 
-    def fill_missing(self):
-        if not self.shapes:
-            raise ValueError('no input specified')
+        'background': None,
+        'background_image': None,
+        'background_brightness': None,
+        'gradient': None,
+        'gpx': None
+    }
 
-        padding = self.margin + self.kernel.radius
-        if not self.extent_in:
-            logging.debug('reading input data')
-            self.shapes = list(self.shapes)
-            logging.debug('read %d shapes' % len(self.shapes))
-            self.extent_in = Extent(shapes=self.shapes)
-
-        if not self.projection.is_scaled():
-            self.projection.auto_set_scale(self.extent_in, padding,
-                                           self.width, self.height)
-            if not (self.width or self.height or self.background_image):
-                raise ValueError('You must specify width or'
-                                 ' height or scale '
-                                 'or background_image or'
-                                 ' both osm and zoom.')
-
-        if self.background_brightness is not None:
-            if self.background_image:
-                self.background_image = self.background_image.point(
-                    lambda x: x * self.background_brightness)
-                self.background_brightness = None   # idempotence
-            else:
-                logging.warning(
-                    'background brightness specified, but no background image')
-
-        if not self.extent_out:
-            self.extent_out = self.extent_in.map(self.projection.project)
-            self.extent_out.grow(padding)
-        logging.info('input extent: %s' % str(self.extent_out.map(
-            self.projection.inverse_project)))
-        logging.info('output extent: %s' % str(self.extent_out))
+    def __init__(self, pts=None, bg=None, projection='equirectangular',
+                 kernel='linear', hsva_min=None, hsva_max=None):
+        for k, v in zip(self.glossary.keys(), self.glossary.values()):
+            setattr(self, k, v)
+        if bg is not None:
+            self.background_image = bg
+            (self.width, self.height) = self.background_image.size
+        self.projection = self._projections[projection]()
+        self.kernel = self._kernels[kernel](self.radius)
+        self.colormap = ColorMap(hsva_min=ColorMap.str_to_hsva(hsva_min),
+                                 hsva_max=ColorMap.str_to_hsva(hsva_max))
+        padding = self.margin + self.radius
+        self.projection.auto_set_scale(self.extent_in, padding,
+                                       self.width, self.height)
+        self.extent_out = self.extent_in.map(self.projection.project)
+        self.extent_out.grow(padding)
+        self.shapes = pts
 
 
 class Point:
@@ -329,30 +378,6 @@ class Point:
 
     def map(self, func):
         return Point(func(self.coord), self.weight)
-
-
-class LatLon(Coordinate):
-    def __init__(self, lat, lon):
-        self.lat = lat
-        self.lon = lon
-
-    def get_lat(self):
-        return self.y
-
-    def set_lat(self, lat):
-        self.y = lat
-
-    def get_lon(self):
-        return self.x
-
-    def set_lon(self, lon):
-        self.x = lon
-
-    lat = property(get_lat, set_lat)
-    lon = property(get_lon, set_lon)
-
-    first = property(get_lat)
-    second = property(get_lon)
 
 
 class ImageMaker():
@@ -408,71 +433,6 @@ class ImageMaker():
             img = Image.composite(img, self.config.background_image,
                                   img.split()[3])
         return img
-
-
-class Extent():
-    def __init__(self, coords=None, shapes=None):
-        if coords:
-            coords = tuple(coords)  # if it's a generator, slurp them all
-            self.min = coords[0].__class__(min(c.first for c in coords),
-                                           min(c.second for c in coords))
-            self.max = coords[0].__class__(max(c.first for c in coords),
-                                           max(c.second for c in coords))
-        elif shapes:
-            self.from_shapes(shapes)
-        else:
-            raise ValueError('Extent must be initialized')
-
-    def __str__(self):
-        return '%s,%s,%s,%s' % (self.min.y, self.min.x, self.max.y, self.max.x)
-
-    def update(self, other):
-        '''grow this bounding box so that it includes the other'''
-        self.min.x = min(self.min.x, other.min.x)
-        self.min.y = min(self.min.y, other.min.y)
-        self.max.x = max(self.max.x, other.max.x)
-        self.max.y = max(self.max.y, other.max.y)
-
-    def from_bounding_box(self, other):
-        self.min = other.min.copy()
-        self.max = other.max.copy()
-
-    def from_shapes(self, shapes):
-        shapes = iter(shapes)
-        self.from_bounding_box(next(shapes).extent)
-        for s in shapes:
-            self.update(s.extent)
-
-    def corners(self):
-        return (self.min, self.max)
-
-    def size(self):
-        return self.max.__class__(self.max.x - self.min.x,
-                                  self.max.y - self.min.y)
-
-    def grow(self, pad):
-        self.min.x -= pad
-        self.min.y -= pad
-        self.max.x += pad
-        self.max.y += pad
-
-    def resize(self, width=None, height=None):
-        if width:
-            self.max.x += float(width - self.size().x) / 2
-            self.min.x = self.max.x - width
-        if height:
-            self.max.y += float(height - self.size().y) / 2
-            self.min.y = self.max.y - height
-
-    def is_inside(self, coord):
-        return (coord.x >= self.min.x and coord.x <= self.max.x and
-                coord.y >= self.min.y and coord.y <= self.max.y)
-
-    def map(self, func):
-        '''Returns a new Extent whose corners are a function of the
-        corners of this one.  The expected use is to project a Extent
-        onto a map.  For example: bbox_xy = bbox_ll.map(projector.project)'''
-        return Extent(coords=(func(self.min), func(self.max)))
 
 
 class ColorMap:
@@ -621,41 +581,13 @@ class AppendingMatrix(Matrix):
         return total
 
 
-def make_config(pts, hsva_min, hsva_max, bg):
-    config = Configuration()
-    config.background_image = bg
-    (config.width, config.height) = config.background_image.size
-    config.projection = config._projections['equirectangular']()
-    config.radius = 2
-    config.margin = 0
-    padding = config.margin + config.radius
-    config.kernel = config._kernels['linear'](config.radius)
-    config.scale = None
-    config.gradient = None
-    config.decay = 0.3
-    config.colormap = ColorMap(
-        hsva_min=ColorMap.str_to_hsva(hsva_min),
-        hsva_max=ColorMap.str_to_hsva(hsva_max))
-    config.gpx = None
-    config.extent_in = Extent(coords=(LatLon(-80., -180.), LatLon(80., 180.)))
-    config.projection.auto_set_scale(config.extent_in, padding,
-                                     config.width, config.height)
-    config.extent_out = config.extent_in.map(config.projection.project)
-    config.extent_out.grow(padding)
-    config.osm = None
-    config.shapes = pts
-    config.background_brightness = None
-    config.fill_missing()
-    return config
-
-
 def get_coord(addr):
     response = reader.city(addr)
     lat = response.location.latitude
     lng = response.location.longitude
     if lat and lng:
         return Point(LatLon(lat, lng), 1)
-    return Point(LatLon(0.0, 0.0), 1)
+    return Point(LatLon(0.0, 0.0), 0)
 
 
 def process_shapes(config, hook=None):
@@ -706,7 +638,8 @@ if __name__ == "__main__":
 
     pts = imap(get_coord, ip)
 
-    config = make_config(pts, options.hsva_min, options.hsva_max, world)
+    config = Configuration(pts=pts, hsva_min=options.hsva_min,
+                           hsva_max=options.hsva_max, bg=world)
 
     img = get_heatmap(config)
 
