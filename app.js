@@ -14,7 +14,7 @@ app.set('view engine', 'ejs');
 
 function update(file, response) {
     fs.readdir('./static/png/', function(err, files) {
-
+          
           var options = [file.match(/\d+/g)[0]];
 
           for (var i in files) {
