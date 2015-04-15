@@ -1,25 +1,25 @@
-<% layout('layout') -%>
-<style>
-  .overlay {
-    background-image: url('./static/png/<%= png %>');
-  }
-</style>
-<div class="container" >
-  <h1 class="form-signin-heading" align="center">Folding@home Map</h1>
-  <br/>
-  <div class="map">
-    <div class="overlay"></div>
-        <!-- <img src="./static/png/<%= png %>"></img> -->
+<% layout( 'layout') -%>
+  <style>
+    .overlay {
+      background-image: url('./static/png/<%= png %>');
+    }
+  </style>
+  <div class="container">
+    <h1 class="form-signin-heading" align="center">Folding@home Map</h1>
+    <br/>
+    <div class="map">
+      <div class="overlay"></div>
+    </div>
+    <div class="form">
+      <form class="form-signin" action="/" method="post">
+        <label>Data from the past:</label>
+        <select name="option" onchange="this.form.submit()">>
+          <% for(var i=0; i<options.length; i++) { %>
+            <option value="<%= options[i] %>">
+              <%=o ptions[i] %> days</option>
+            <% } %>
+        </select>
+      </form>
+    </div>
   </div>
-  <div class="form">
-  <form class="form-signin" action="/" method="post">
-    <label>Data from the past:</label>
-    <select name="option" onchange="this.form.submit()">>
-    <% for(var i=0; i<options.length; i++) { %>
-       <option value="<%= options[i] %>"><%= options[i] %> days</option>
-    <% } %>
-    </select>
-  </form>
-</div>
-</div>
-<!-- <script src="./static/js/fahmap.js"></script> -->
+  <!-- <script src="./static/js/fahmap.js"></script> -->

@@ -13,34 +13,34 @@ app.engine('ejs', engine);
 app.set('view engine', 'ejs');
 
 function update(file, response) {
-    fs.readdir('./static/png/', function(err, files) {
-          
-          var options = [file.match(/\d+/g)[0]];
+  fs.readdir('./static/png/', function(err, files) {
 
-          for (var i in files) {
-            if (files[i] != file ) {
-              options.push(files[i].match(/\d+/g)[0]);
-            }
-          }
+    var options = [file.match(/\d+/g)[0]];
 
-          response.render('index', {
-                          png: file,
-                          options: options
-          });
+    for (var i in files) {
+      if (files[i] != file) {
+        options.push(files[i].match(/\d+/g)[0]);
+      }
+    }
 
-        });
+    response.render('index', {
+      png: file,
+      options: options
+    });
+
+  });
 }
 
-app.get('/', function (req, res, next) {
-    update('past30.png', res);
+app.get('/', function(req, res, next) {
+  update('past30.png', res);
 });
 
-app.use('/static',express.static(__dirname + "/static/"));
+app.use('/static', express.static(__dirname + "/static/"));
 
-app.post('/', function(req, res, next){
-    update('past' + req.body.option + '.png', res);
+app.post('/', function(req, res, next) {
+  update('past' + req.body.option + '.png', res);
 });
 
-app.listen(port, function () {
-    console.log('fah-map listening on port ' + port);
+app.listen(port, function() {
+  console.log('fah-map listening on port ' + port);
 });
