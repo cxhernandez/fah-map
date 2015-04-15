@@ -1,44 +1,31 @@
 body {
   background-color: #f6f6f6 !important;
-
 }
 
-.mylayer {
-    fill: #EDC9AF;
-    stroke: gray;
-}
-
-.ocean {
-    fill: lightblue;
-    opacity: 0.2;
-}
-
-.fah-map label {
-  text-align: center;
-  font-style: italic;
-}
-
-.fah-map {
-  width: 100%;
-  height: auto;
+.map {
+  width: 80%;
+  height: 0;
   margin: 0 auto;
+  padding-top: 35.6%;
   border: 5px solid #bbb;
   vertical-align: middle;
   margin-bottom: 1em;
   background-color: black !important;
+  background-image: url('../svg/lonlat.svg');
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
-img {
+.overlay {
   width: 100%;
-  align: center;
-  padding: 0;
-}
-
-svg {
-  overflow: hidden;
-  width:100%;
-  height: auto;
-  padding: -5em;
+  height: 0;
+  padding-top: 45%;
+  margin-top: -45%;
+  background-color: rgba(0, 0, 0, 0.6);
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
 .form {

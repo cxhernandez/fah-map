@@ -321,6 +321,8 @@ class Configuration(object):
         if bg is not None:
             self.background_image = bg
             (self.width, self.height) = self.background_image.size
+        else:
+            self.width, self.height = 2000, 890
         self.projection = self._projections[projection]()
         self.kernel = self._kernels[kernel](self.radius)
         self.colormap = ColorMap(hsva_min=ColorMap.str_to_hsva(hsva_min),
@@ -616,7 +618,7 @@ def parse_cmdln():
     parser.add_argument('-db', '--database', dest='db',
                         help='MaxMind GeoDB')
     parser.add_argument('-bg', '--background-image',
-                        dest='bg', help='Image of the world.')
+                        dest='bg', help='Image of the world.', default=None)
     parser.add_argument('-d', '--days', dest='days',
                         help='Number of days to access.', default=30, type=int)
     parser.add_argument('-m', '--min', dest='hsva_min',
@@ -633,7 +635,9 @@ if __name__ == "__main__":
     options = parse_cmdln()
 
     reader = geoip2.database.Reader(options.db)
-    world = Image.open(options.bg)
+    world = None
+    if options.bg is not None:
+        world = Image.open(options.bg)
     addr = np.loadtxt(options.ip, dtype=str)
 
     pts = imap(get_coord, addr)

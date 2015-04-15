@@ -1,9 +1,15 @@
 <% layout('layout') -%>
+<style>
+  .overlay {
+    background-image: url('./static/png/<%= png %>');
+  }
+</style>
 <div class="container" >
   <h1 class="form-signin-heading" align="center">Folding@home Map</h1>
   <br/>
-  <div class="fah-map">
-        <img src="./static/png/<%= png %>"></img>
+  <div class="map">
+    <div class="overlay"></div>
+        <!-- <img src="./static/png/<%= png %>"></img> -->
   </div>
   <div class="form">
   <form class="form-signin" action="/" method="post">
