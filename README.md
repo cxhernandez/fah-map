@@ -1,6 +1,6 @@
 # fah-map
 
-fah-map is an easily deployable node.js app to display recent activity within the Folding@home network. Included is `fahmap.py`, a tool to quickly generate a beautiful geographic heatmap from a database of Folding@home donor IP addresses.
+fah-map is an easily deployable node.js app to display recent activity within the Folding@home network. Included is `fahmap.py`, a tool to quickly generate beautiful geographic heatmaps from a Folding@home database of IP addresses.
 
 <img src="./example/example.png" alt="alt text" height="250px">
 

@@ -14,7 +14,7 @@ from colorsys import hsv_to_rgb
 from collections import defaultdict
 
 
-__version__ = '0.0.2'
+__version__ = '0.0.3'
 
 
 class LinearKernel:
@@ -314,15 +314,16 @@ class Configuration(object):
         'gpx': None
     }
 
-    def __init__(self, pts=None, bg=None, projection='equirectangular',
-                 kernel='linear', hsva_min=None, hsva_max=None):
+    def __init__(self, pts=None, bg=None,
+                 projection='equirectangular', kernel='linear', hsva_min=None,
+                 hsva_max=None, height=0, width=0):
         for k, v in zip(self.glossary.keys(), self.glossary.values()):
             setattr(self, k, v)
         if bg is not None:
             self.background_image = bg
             (self.width, self.height) = self.background_image.size
         else:
-            self.width, self.height = 2000, 890
+            self.width, self.height = width, height
         self.projection = self._projections[projection]()
         self.kernel = self._kernels[kernel](self.radius)
         self.colormap = ColorMap(hsva_min=ColorMap.str_to_hsva(hsva_min),
@@ -612,21 +613,28 @@ def parse_cmdln():
     parser = argparse.ArgumentParser(
         description=__doc__,
         version=__version__,
-        formatter_class=argparse.RawDescriptionHelpFormatter)
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('-i', '--in', dest='ip',
-                        help='IP Database')
+                        help='FAH IP Database', required=True)
     parser.add_argument('-db', '--database', dest='db',
-                        help='MaxMind GeoDB')
+                        help='MaxMind GeoDB', required=True)
     parser.add_argument('-bg', '--background-image',
                         dest='bg', help='Image of the world.', default=None)
     parser.add_argument('-d', '--days', dest='days',
-                        help='Number of days to access.', default=30, type=int)
+                        help='Number of days to access in database.',
+                        default=30, type=int)
     parser.add_argument('-m', '--min', dest='hsva_min',
                         help='Color of the minimum of the gradient.',
                         default=ColorMap.DEFAULT_HSVA_MIN_STR, type=str)
     parser.add_argument('-M', '--max', dest='hsva_max',
-                        help='Color of the maximum of the gradient..',
+                        help='Color of the maximum of the gradient.',
                         default=ColorMap.DEFAULT_HSVA_MAX_STR, type=str)
+    parser.add_argument('-ht', '--height', dest='height',
+                        help='Height of the image in pixels.',
+                        default=890, type=int)
+    parser.add_argument('-wd', '--width', dest='width',
+                        help='Width of the image in pixels.',
+                        default=2000, type=int)
 
     args = parser.parse_args()
     return args
@@ -643,7 +651,8 @@ if __name__ == "__main__":
     pts = imap(get_coord, addr)
 
     config = Configuration(pts=pts, hsva_min=options.hsva_min,
-                           hsva_max=options.hsva_max, bg=world)
+                           hsva_max=options.hsva_max, bg=world,
+                           height=options.height, width=options.width)
 
     img = get_heatmap(config)
 
